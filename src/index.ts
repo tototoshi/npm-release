@@ -21,6 +21,22 @@ async function confirm() {
 }
 
 function checkIfWorkingDirectoryIsClean() {
+  shell.exec("git fetch origin");
+
+  const currentBranch = shell.exec("git branch --show-current").trim();
+
+  const revUpstream = shell
+    .exec(`git rev-parse origin/${currentBranch}`)
+    .trim();
+  const rev = shell.exec(`git rev-parse ${currentBranch}`).trim();
+
+  if (revUpstream !== rev) {
+    console.error("There are either unpushed or unpulled changes");
+    console.error(`origin/${currentBranch}: revision ${revUpstream}`);
+    console.error(`${currentBranch}       : revision ${rev}`);
+    process.exit(1);
+  }
+
   const diff = shell.exec("git status --porcelain").stdout;
   if (diff.length > 0) {
     console.error("Workspace is not clean");
